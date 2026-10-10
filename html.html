@@ -1,97 +1,449 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Based Skin Disease Detection</title>
+    <meta name="theme-color" content="#f4f8fc">
+    <title>DermaCare | Skin Image Viewer</title>
+
     <style>
+        :root {
+            --primary: #176b87;
+            --primary-dark: #10536b;
+            --background: #f4f8fc;
+            --text: #193247;
+            --muted: #65788a;
+            --border: #dce6ef;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 32px 16px;
+            font-family: Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, #e0f3f5, transparent 40%),
+                var(--background);
+        }
+
+        .page {
+            width: 100%;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .brand {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background-color: #f3f4f6;
-            font-family: Arial, sans-serif;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: var(--primary);
+            color: white;
+            font-size: 24px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .card {
+            padding: 32px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 14px 40px rgba(30, 64, 90, 0.08);
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .intro h2 {
+            margin: 0 0 10px;
+            font-size: 27px;
+        }
+
+        .intro p {
+            max-width: 530px;
+            margin: 0 auto;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .upload-area {
+            padding: 28px 18px;
+            text-align: center;
+            border: 2px dashed #b9d0df;
+            border-radius: 15px;
+            background: #f8fbfd;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .upload-area:focus-within,
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f0f9fb;
+        }
+
+        .upload-icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+        }
+
+        .upload-area h3 {
+            margin: 0 0 8px;
+            font-size: 17px;
+        }
+
+        .upload-area p {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: white;
+            color: var(--text);
+        }
+
+        input:focus-visible,
+        button:focus-visible {
+            outline: 3px solid #f0ad25;
+            outline-offset: 3px;
+        }
+
+        .preview-section {
+            display: none;
+            margin-top: 24px;
             text-align: center;
         }
-        .container {
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+        .preview-section.visible {
+            display: block;
         }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
+
+        .preview-section h3 {
+            margin: 0 0 14px;
+            font-size: 17px;
         }
-        input {
-            margin-bottom: 20px;
+
+        .preview-frame {
+            display: grid;
+            place-items: center;
+            min-height: 180px;
+            padding: 12px;
+            background: #f4f7fa;
+            border: 1px solid var(--border);
+            border-radius: 13px;
         }
-        img {
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+
+        #uploadedImage {
+            display: block;
+            max-width: 100%;
+            max-height: 340px;
+            object-fit: contain;
+            border-radius: 8px;
         }
+
+        #fileName {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #007bff;
-            border: none;
-            border-radius: 5px;
+            flex: 1;
+            min-width: 150px;
+            padding: 13px 18px;
+            border: 0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
         }
+
         button:hover {
-            background-color: #0056b3;
+            transform: translateY(-1px);
         }
-        .result {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: red;
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .primary-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .secondary-btn {
+            background: #eaf0f5;
+            color: var(--text);
+        }
+
+        .secondary-btn:hover {
+            background: #dce6ef;
+        }
+
+        .notice {
+            margin-top: 24px;
+            padding: 16px;
+            border: 1px solid #f0d8a4;
+            border-radius: 12px;
+            background: #fff9e9;
+            color: #70541b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .notice strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        #statusMessage {
+            margin: 16px 0 0;
+            color: var(--primary-dark);
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 22px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 22px 12px;
+            }
+
+            .card {
+                padding: 22px 16px;
+            }
+
+            .intro h2 {
+                font-size: 23px;
+            }
+
+            .brand h1 {
+                font-size: 22px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>AI-Based Skin Disease Detection</h1>
-        <input type="file" accept="image/*" id="imageInput">
-        <br>
-        <img id="uploadedImage" style="display:none;" alt="Uploaded Image">
-        <br>
-        <button onclick="handleDetect()">Detect Skin Disease</button>
-        <p class="result" id="resultText"></p>
-    </div>
+    <main class="page">
+        <header class="brand">
+            <div class="brand-icon" aria-hidden="true">✚</div>
+            <div>
+                <h1>DermaCare</h1>
+                <p>Skin image review interface</p>
+            </div>
+        </header>
+
+        <section class="card" aria-labelledby="pageTitle">
+            <div class="intro">
+                <h2 id="pageTitle">Skin Image Viewer</h2>
+                <p>
+                    Upload a skin image to preview it in this demonstration
+                    interface. You can replace or clear the image at any time.
+                </p>
+            </div>
+
+            <div class="upload-area">
+                <div class="upload-icon" aria-hidden="true">🖼️</div>
+                <h3>Choose a skin image</h3>
+                <p>Supported formats: JPG, PNG, WEBP. Maximum size: 10 MB.</p>
+
+                <label for="imageInput">Select image file</label>
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/jpeg,image/png,image/webp"
+                    aria-describedby="uploadHelp"
+                >
+                <p id="uploadHelp" style="margin-top: 12px; margin-bottom: 0;">
+                    Your selected image is previewed in this browser.
+                </p>
+            </div>
+
+            <section
+                class="preview-section"
+                id="previewSection"
+                aria-labelledby="previewTitle"
+            >
+                <h3 id="previewTitle">Image Preview</h3>
+                <div class="preview-frame">
+                    <img id="uploadedImage" alt="Preview of the selected skin image">
+                </div>
+                <p id="fileName"></p>
+            </section>
+
+            <div class="actions">
+                <button type="button" class="primary-btn" id="reviewButton">
+                    Check Analysis Status
+                </button>
+                <button type="button" class="secondary-btn" id="clearButton">
+                    Clear Image
+                </button>
+            </div>
+
+            <p id="statusMessage" role="status" aria-live="polite">
+                Select an image to get started.
+            </p>
+
+            <aside class="notice">
+                <strong>Important medical notice</strong>
+                This demo does not contain a trained skin-disease detection
+                model and cannot identify melanoma or other skin conditions.
+                The image preview is not a diagnosis. Consult a qualified
+                dermatologist about concerning or changing skin lesions.
+            </aside>
+        </section>
+
+        <footer class="footer">
+            Educational demonstration only · No automated diagnosis is provided.
+        </footer>
+    </main>
 
     <script>
         const imageInput = document.getElementById("imageInput");
         const uploadedImage = document.getElementById("uploadedImage");
-        const resultText = document.getElementById("resultText");
+        const previewSection = document.getElementById("previewSection");
+        const fileName = document.getElementById("fileName");
+        const statusMessage = document.getElementById("statusMessage");
+        const reviewButton = document.getElementById("reviewButton");
+        const clearButton = document.getElementById("clearButton");
 
-        imageInput.addEventListener("change", (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                uploadedImage.src = URL.createObjectURL(file);
-                uploadedImage.style.display = "block";
-            }
-        });
+        let currentImageUrl = null;
 
-        function handleDetect() {
-            if (!uploadedImage.src) {
-                alert("Please upload an image first.");
+        imageInput.addEventListener("change", () => {
+            const file = imageInput.files[0];
+
+            if (!file) {
                 return;
             }
-            
-            resultText.textContent = "Analyzing...";
-            setTimeout(() => {
-                resultText.textContent = "Melanoma Detected (High Risk). Please consult a dermatologist.";
-            }, 2000);
+
+            const allowedTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+            if (!allowedTypes.includes(file.type)) {
+                resetImage();
+                statusMessage.textContent =
+                    "Unsupported file type. Please select a JPG, PNG, or WEBP image.";
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                resetImage();
+                statusMessage.textContent =
+                    "The image exceeds 10 MB. Please choose a smaller file.";
+                return;
+            }
+
+            if (currentImageUrl) {
+                URL.revokeObjectURL(currentImageUrl);
+            }
+
+            currentImageUrl = URL.createObjectURL(file);
+            uploadedImage.src = currentImageUrl;
+            previewSection.classList.add("visible");
+            fileName.textContent = file.name;
+            statusMessage.textContent =
+                "Image loaded successfully. No medical analysis has been performed.";
+        });
+
+        reviewButton.addEventListener("click", () => {
+            if (!imageInput.files.length || !currentImageUrl) {
+                statusMessage.textContent =
+                    "Please select a valid image before continuing.";
+                imageInput.focus();
+                return;
+            }
+
+            statusMessage.textContent =
+                "Preview ready. Automated analysis is unavailable because no trained AI model is connected.";
+        });
+
+        function resetImage() {
+            if (currentImageUrl) {
+                URL.revokeObjectURL(currentImageUrl);
+                currentImageUrl = null;
+            }
+
+            imageInput.value = "";
+            uploadedImage.removeAttribute("src");
+            previewSection.classList.remove("visible");
+            fileName.textContent = "";
         }
+
+        clearButton.addEventListener("click", () => {
+            resetImage();
+            statusMessage.textContent = "Image cleared. Select another image to begin.";
+            imageInput.focus();
+        });
+
+        window.addEventListener("beforeunload", () => {
+            if (currentImageUrl) {
+                URL.revokeObjectURL(currentImageUrl);
+            }
+        });
     </script>
 </body>
 </html>
-
